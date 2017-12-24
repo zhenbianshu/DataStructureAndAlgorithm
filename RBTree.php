@@ -499,3 +499,19 @@ class RBTree {
     }
 
 }
+
+function test() {
+    $tree = new RBTree(50);
+    for ($i = 0; $i < 20; $i++) {
+        $value = rand(1, 100);
+        $tree->insert($value);
+    }
+
+    for ($i = 0; $i < 20; $i++) {
+        $value = rand(1, 100);
+        $tree->delete($value);
+    }
+
+    $tree->printTree();
+}
+test();
