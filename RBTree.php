@@ -1,6 +1,7 @@
 <?php
 
-class RBNode {
+class RBNode
+{
     const COLOR_BLACK = 'BLK';
     const COLOR_RED = 'RED';
     const POS_LEFT = 'LFT';
@@ -9,12 +10,12 @@ class RBNode {
     /**
      * @var RBNode $left ;
      */
-    public $left;
+    private $left;
 
     /**
      * @var RBNode $right ;
      */
-    public $right;
+    private $right;
 
     /**
      * @var RBNode $parent ;
@@ -33,7 +34,8 @@ class RBNode {
      */
     public $color;
 
-    public function __construct($value, $color) {
+    public function __construct($value, $color)
+    {
         $this->setValue($value);
         $this->setColor($color);
     }
@@ -44,7 +46,8 @@ class RBNode {
      * @param RBNode $child
      * @param $pos
      */
-    public function append(RBNode $child, $pos) {
+    public function append(RBNode $child, $pos)
+    {
         $child->setParent($this);
         if ($pos == RBNode::POS_RIGHT) {
             $this->setRight($child);
@@ -57,7 +60,8 @@ class RBNode {
      * 获取兄弟结点
      * @return null|RBNode
      */
-    public function getBro() {
+    public function getBro()
+    {
         if ($this->getParent() && $this->getParent()->getLeft() && $this->getValue() == $this->getParent()->getLeft()->getValue()) {
             return $this->getParent()->getRight();
         } elseif ($this->getParent() && $this->getParent()->getRight() && $this->getValue() == $this->getParent()->getRight()->getValue()) {
@@ -72,7 +76,8 @@ class RBNode {
      * 获取结点所在子树的方向
      * @return string
      */
-    public function getPos() {
+    public function getPos()
+    {
         if (!$this->getParent()) {
             return '';
         }
@@ -88,7 +93,8 @@ class RBNode {
      * 获取下一个结点
      * @return $this|RBNode
      */
-    public function getNext() {
+    public function getNext()
+    {
         if ($this->getLeft()) {
             return $this->getLeft()->getNext();
         }
@@ -100,7 +106,8 @@ class RBNode {
      * 获取上一个结点
      * @return $this|RBNode
      */
-    public function getPre() {
+    public function getPre()
+    {
         if ($this->getRight()) {
             return $this->getRight()->getPre();
         }
@@ -115,7 +122,8 @@ class RBNode {
      *
      * @return bool
      */
-    public function largerThan(RBNode $node) {
+    public function largerThan(RBNode $node)
+    {
         if ($this->getValue() > $node->getValue()) {
             return true;
         }
@@ -130,7 +138,8 @@ class RBNode {
      *
      * @return bool
      */
-    public function isEqual(RBNode $node) {
+    public function isEqual(RBNode $node)
+    {
         if ($this->getValue() == $node->getValue()) {
             return true;
         }
@@ -138,49 +147,60 @@ class RBNode {
         return false;
     }
 
-    public function getValue() {
+    public function getValue()
+    {
         return $this->value;
     }
 
-    public function setValue($value) {
+    public function setValue($value)
+    {
         $this->value = $value;
     }
 
-    public function getColor() {
+    public function getColor()
+    {
         return $this->color;
     }
 
-    public function setColor($color) {
+    public function setColor($color)
+    {
         $this->color = $color;
     }
 
-    public function getParent() {
+    public function getParent()
+    {
         return $this->parent;
     }
 
-    public function setParent($node) {
+    public function setParent($node)
+    {
         $this->parent = $node;
     }
 
-    public function getLeft() {
+    public function getLeft()
+    {
         return $this->left;
     }
 
-    public function setLeft($node) {
+    public function setLeft($node)
+    {
         $this->left = $node;
     }
 
-    public function getRight() {
+    public function getRight()
+    {
         return $this->right;
     }
 
-    public function setRight($node) {
+    public function setRight($node)
+    {
         $this->right = $node;
     }
 
 }
 
-class RBTree {
+class RBTree
+{
 
     /**
      * @var RBNode 根结点
@@ -198,7 +218,8 @@ class RBTree {
     public $debug = false;
 
 
-    public function __construct($num) {
+    public function __construct($num)
+    {
         $this->root = new RBNode($num, RBNode::COLOR_BLACK);
     }
 
@@ -207,7 +228,8 @@ class RBTree {
      *
      * @param $debug
      */
-    public function setDebug($debug) {
+    public function setDebug($debug)
+    {
         $this->debug = $debug;
     }
 
@@ -219,7 +241,8 @@ class RBTree {
      *
      * @return null|RBNode
      */
-    public function query(RBNode $node, $num) {
+    public function query(RBNode $node, $num)
+    {
         $node = $this->searchLoc($node, $num);
         if ($node->getValue() == $num) {
             return $node;
@@ -231,7 +254,8 @@ class RBTree {
     /**
      * 按照层级打印树结点的 值|颜色|方向
      */
-    public function printTree() {
+    public function printTree()
+    {
         $this->data = array();
         $this->getChild($this->root, 0);
         $total = count($this->data);
@@ -251,7 +275,8 @@ class RBTree {
      *
      * @return bool
      */
-    public function insert($num) {
+    public function insert($num)
+    {
         $new = new RBNode($num, RBNode::COLOR_RED);
         $parent = $this->searchLoc($this->root, $num);
         if ($parent->getValue() == $num) {
@@ -264,58 +289,7 @@ class RBTree {
         } else {
             $parent->append($new, RBNode::POS_RIGHT);
         }
-
-        // 如果父结点是黑色，直接返回成功
-        if ($parent->getColor() == RBNode::COLOR_BLACK) {
-            return true;
-        }
-
-        // 以下是父结点是红色的情况
-        // 有叔结点时，父结点和叔结点一定都是红色，
-        if ($parent->getBro()) {
-            $point = $parent;
-            // 递归到root结点，或连续两层黑色
-            while ($point->getValue() != $this->root->getValue()) {
-                // 则递归向上改颜色直到root，对应234树中的加层
-                $point->getBro()->setColor(RBNode::COLOR_BLACK);
-                $point->setColor(RBNode::COLOR_BLACK);
-                $point->getParent()->setColor(RBNode::COLOR_RED);
-                $point = $point->getParent();
-                // 如果当前结点被修改为红色后父结点是黑色，则已达到平稳，不用再向上递归
-                if ($point->getParent() && $point->getParent()->getColor() == RBNode::COLOR_BLACK) {
-                    break;
-                }
-            }
-            $this->root->setColor(RBNode::COLOR_BLACK);
-            return true;
-        }
-
-        // 没有叔结点时
-        // 当新结点、父结点、祖父结点在同一条线上
-        if ($new->getPos() == $parent->getPos()) {
-            if ($parent->getPos() == RBNode::POS_LEFT) {
-                $this->rotate($parent, RBNode::POS_RIGHT);
-            } else {
-                $this->rotate($parent, RBNode::POS_LEFT);
-            }
-
-            // 此时新插入结点是子树的父结点
-            $parent->setColor(RBNode::COLOR_BLACK);
-            $parent->getLeft()->setColor(RBNode::COLOR_RED);
-            $parent->getRight()->setColor(RBNode::COLOR_RED);
-        } else {
-            // 当新结点、父结点、祖父结点不在同一条线上
-            $parent_pos = $parent->getPos();
-            $new_pos = $new->getPos();
-            $this->rotate($new, $parent_pos);
-            $this->rotate($new, $new_pos);
-
-            // 此时新插入结点是子树的叶子结点
-            $new->setColor(RBNode::COLOR_BLACK);
-            $new->getLeft()->setColor(RBNode::COLOR_RED);
-            $new->getRight()->setColor(RBNode::COLOR_RED);
-        }
-        return true;
+        return $this->repairInsert($new);
     }
 
     /**
@@ -325,7 +299,8 @@ class RBTree {
      *
      * @return bool
      */
-    public function delete($num) {
+    public function delete($num)
+    {
         $node = $this->searchLoc($this->root, $num);
         if ($node->getValue() != $num) {
             return false;
@@ -349,7 +324,7 @@ class RBTree {
         // 如果结点颜色是黑色，相当于子树少了一层，需要递归向上处理平衡
         if ($replacement->getColor() == RBNode::COLOR_BLACK) {
             $point = $replacement;
-            while ($point->getValue() != $this->root->getValue() && !$this->RepairLevel($point)) {
+            while ($point->getValue() != $this->root->getValue() && !$this->repairDelete($point)) {
                 // 如果当前层级处理失败，就必须要降层了，父黑兄弟红时，将兄弟结点置为红色即可（由于会首先处理父红或侄子有红的情况，所以处理失败时一定是全黑）
                 if ($point->getParent()->getColor() == RBNode::COLOR_BLACK) {
                     $point->getBro()->setColor(RBNode::COLOR_RED);
@@ -373,6 +348,90 @@ class RBTree {
     }
 
     /**
+     * 处理节点插入的情况
+     *
+     * @param RBNode $node
+     *
+     * @return bool
+     */
+    private function repairInsert(RBNode $node)
+    {
+        // 如果父结点是黑色，直接返回成功
+        $parent = $node->getParent();
+        // 如果没有父结点说明是root结点
+        if (!$parent) {
+            $node->setColor(RBNode::COLOR_BLACK);
+            return true;
+        }
+        if ($parent->getColor() == RBNode::COLOR_BLACK) {
+            return true;
+        }
+
+        // 以下父结点为红色
+        // 没有叔结点时，树旋转一下即可达到平衡
+        if (!$parent->getBro()) {
+            // 当新结点、父结点、祖父结点在同一条线上
+            if ($node->getPos() == $parent->getPos()) {
+                if ($parent->getPos() == RBNode::POS_LEFT) {
+                    $this->rotate($parent, RBNode::POS_RIGHT);
+                } else {
+                    $this->rotate($parent, RBNode::POS_LEFT);
+                }
+
+                // 此时新插入结点是子树的父结点
+                $parent->setColor(RBNode::COLOR_BLACK);
+                $parent->getLeft()->setColor(RBNode::COLOR_RED);
+                $parent->getRight()->setColor(RBNode::COLOR_RED);
+            } else {
+                // 当新结点、父结点、祖父结点不在同一条线上
+                $parent_pos = $parent->getPos();
+                $new_pos = $node->getPos();
+                $this->rotate($node, $parent_pos);
+                $this->rotate($node, $new_pos);
+
+                // 此时新插入结点是子树的叶子结点
+                $node->setColor(RBNode::COLOR_BLACK);
+                $node->getLeft()->setColor(RBNode::COLOR_RED);
+                $node->getRight()->setColor(RBNode::COLOR_RED);
+            }
+            return true;
+        }
+
+        // 父结点和叔结点都是红色时，将父叔变黑，祖父变红，再递归处理祖父和其父亲的情况
+        if ($parent->getBro()->getColor() == RBNode::COLOR_RED) {
+            $parent->getBro()->setColor(RBNode::COLOR_BLACK);
+            $parent->setColor(RBNode::COLOR_BLACK);
+            $parent->getParent()->setColor(RBNode::COLOR_RED);
+
+            // 如果当前结点被修改为红色后父结点是黑色，则已达到平稳，不用再向上递归
+            $adjust_node = $parent->getParent();
+            return $this->repairInsert($adjust_node);
+        } else {
+            // 父结点红，叔结点是黑色时，处于中间模式，此时把加层的子树旋转到对边子树达到平衡
+            if ($node->getPos() == $parent->getPos()) {
+                $this->rotate($parent, $parent->getBro()->getPos());
+
+                // 此时调整结点是子树的父结点
+                $parent->setColor(RBNode::COLOR_BLACK);
+                $parent->getLeft()->setColor(RBNode::COLOR_RED);
+                $parent->getRight()->setColor(RBNode::COLOR_RED);
+            } else {
+                $ori_pos = $node->getPos();
+                $this->rotate($node, $parent->getPos());
+                $this->rotate($node, $ori_pos);
+
+                // 此时调整结点是子树的父结点
+                $node->setColor(RBNode::COLOR_BLACK);
+                $node->getLeft()->setColor(RBNode::COLOR_RED);
+                $node->getRight()->setColor(RBNode::COLOR_RED);
+            }
+        }
+
+        $this->root->setColor(RBNode::COLOR_BLACK);
+        return true;
+    }
+
+    /**
      * 从结点内查找离某个值最近的位置
      *
      * @param RBNode $node
@@ -380,7 +439,8 @@ class RBTree {
      *
      * @return RBNode
      */
-    private function searchLoc(RBNode $node, $num) {
+    private function searchLoc(RBNode $node, $num)
+    {
         if ($node->getValue() > $num && $node->getLeft()) {
             return $this->searchLoc($node->getLeft(), $num);
         } elseif ($node->getValue() < $num && $node->getRight()) {
@@ -396,7 +456,8 @@ class RBTree {
      * @param RBNode $node
      * @param $direction
      */
-    private function rotate(RBNode $node, $direction) {
+    private function rotate(RBNode $node, $direction)
+    {
         // 留下父结点的指针
         $ori_parent = $node->getParent();
         if (!$ori_parent) {
@@ -435,7 +496,8 @@ class RBTree {
      *
      * @return bool
      */
-    private function repairLevel(RBNode $node) {
+    private function repairDelete(RBNode $node)
+    {
         // 结点是黑色，肯定有兄弟结点
         $bro = $node->getBro();
         $parent = $node->getParent();
@@ -448,7 +510,7 @@ class RBTree {
             $bro->setColor(RBNode::COLOR_BLACK);
             $parent->setColor(RBNode::COLOR_RED);
             // 继续处理删除情况
-            return $this->repairLevel($node);
+            return $this->repairDelete($node);
         }
 
         // 兄弟结点是黑色，如果有侄子结点一定是红色
@@ -485,7 +547,8 @@ class RBTree {
      * @param RBNode $node
      * @param $level
      */
-    private function getChild(RBNode $node, $level) {
+    private function getChild(RBNode $node, $level)
+    {
         $level++;
         if ($node->getLeft()) {
             $this->getChild($node->getLeft(), $level);
@@ -500,7 +563,8 @@ class RBTree {
 
 }
 
-function test() {
+function test()
+{
     $tree = new RBTree(50);
     for ($i = 0; $i < 20; $i++) {
         $value = rand(1, 100);
@@ -514,4 +578,5 @@ function test() {
 
     $tree->printTree();
 }
+
 test();
