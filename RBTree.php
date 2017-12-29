@@ -124,11 +124,7 @@ class RBNode
      */
     public function largerThan(RBNode $node)
     {
-        if ($this->getValue() > $node->getValue()) {
-            return true;
-        }
-
-        return false;
+        return $this->getValue() > $node->getValue();
     }
 
     /**
@@ -140,11 +136,7 @@ class RBNode
      */
     public function isEqual(RBNode $node)
     {
-        if ($this->getValue() == $node->getValue()) {
-            return true;
-        }
-
-        return false;
+        return $this->getValue() == $node->getValue();
     }
 
     public function getValue()
@@ -277,12 +269,12 @@ class RBTree
      */
     public function insert($num)
     {
-        $new = new RBNode($num, RBNode::COLOR_RED);
         $parent = $this->searchLoc($this->root, $num);
         if ($parent->getValue() == $num) {
             return false;
         }
 
+        $new = new RBNode($num, RBNode::COLOR_RED);
         // 将子结点连接到父结点上；
         if ($parent->largerThan($new)) {
             $parent->append($new, RBNode::POS_LEFT);
