@@ -1,13 +1,28 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class RBTree {
     public static void main(String[] args) {
         Tree tree = new Tree(50);
-        tree.insert(40);
-        tree.insert(33);
-        tree.delete(33);
+        for (int i = 0; i < 20; i++) {
+            double rand = Math.random();
+            int num = (int) (rand * 100);
+            tree.insert(num);
+        }
+
+        for (int j = 0; j < 20; j++) {
+            double rand = Math.random();
+            int num = (int) (rand * 100);
+            tree.delete(num);
+        }
+        tree.printTree();
     }
 }
 
 class RBNode {
+    /**
+     * 节点颜色
+     */
     public enum Color {
         BLK("BLK"), RED("RED");
         private String color;
@@ -21,6 +36,9 @@ class RBNode {
         }
     }
 
+    /**
+     * 节点位置和方向
+     */
     public enum Pos {
         LFT("LET"), RGT("RGT"), TOP("TOP");
         private String pos;
@@ -34,10 +52,29 @@ class RBNode {
         }
     }
 
+    /**
+     * 颜色
+     */
     protected Color color;
+
+    /**
+     * 值
+     */
     protected int value;
+
+    /**
+     * 父结点
+     */
     protected RBNode parent;
+
+    /**
+     * 左结点
+     */
     protected RBNode left;
+
+    /**
+     * 右结点
+     */
     protected RBNode right;
 
     public RBNode(int value, Color color) {
@@ -85,6 +122,11 @@ class RBNode {
         this.right = right;
     }
 
+    /**
+     * 获取离最近的下一个结点
+     *
+     * @return node
+     */
     public RBNode getNext() {
         if (this.getRight() != null) {
             return this.getRight().getNext();
@@ -93,6 +135,11 @@ class RBNode {
         return this;
     }
 
+    /**
+     * 获取离最近的上一个结点
+     *
+     * @return node
+     */
     public RBNode getPre() {
         if (this.getLeft() != null) {
             return this.getLeft().getPre();
@@ -101,6 +148,11 @@ class RBNode {
         return this;
     }
 
+    /**
+     * 获取节点在子树的位置
+     *
+     * @return pos
+     */
     public Pos getPos() {
         if (this.getParent() == null) {
             return Pos.TOP;
@@ -113,6 +165,11 @@ class RBNode {
         }
     }
 
+    /**
+     * 获取兄弟结点
+     *
+     * @return node
+     */
     public RBNode getBro() {
         if (this.getParent() != null && this.getParent().getLeft() != null && this.getValue() == this.getParent().getLeft().getValue()) {
             return this.getParent().getRight();
@@ -123,6 +180,12 @@ class RBNode {
         }
     }
 
+    /**
+     * 在结点上挂一个子结点
+     *
+     * @param child 子结点
+     * @param pos   位置
+     */
     public void append(RBNode child, Pos pos) {
         child.setParent(this);
         if (pos == Pos.RGT) {
@@ -132,27 +195,31 @@ class RBNode {
         }
     }
 
+    /**
+     * 判断两个结点是否相等
+     *
+     * @param node 结点
+     * @return 结果
+     */
     public boolean isEqual(RBNode node) {
-        if (this.getValue() == node.getValue()) {
-            return true;
-        }
-
-        return false;
+        return this.getValue() == node.getValue();
     }
 
+    /**
+     * 判断结点是否大于参数结点
+     *
+     * @param node 结点
+     * @return 结果
+     */
     public boolean largerThan(RBNode node) {
-        if (this.getValue() > node.getValue()) {
-            return true;
-        }
-
-        return false;
+        return this.getValue() > node.getValue();
     }
 }
 
 class Tree {
     protected RBNode root;
     protected boolean debug;
-    protected String[] data;
+    protected List data;
 
     public Tree(int value) {
         this.root = new RBNode(value, RBNode.Color.BLK);
@@ -169,9 +236,9 @@ class Tree {
     /**
      * 查询结点子树中数字是否存在
      *
-     * @param node
-     * @param num
-     * @return
+     * @param node 结点
+     * @param num  数字
+     * @return 结点
      */
     public RBNode query(RBNode node, int num) {
         node = this.searchLoc(node, num);
@@ -182,6 +249,30 @@ class Tree {
         return null;
     }
 
+    /**
+     * 打印红黑树
+     */
+    public void printTree() {
+        this.data = new ArrayList();
+        this.getChild(this.root, 0);
+
+        for (int i = 0; i < this.data.size(); i++) {
+            List ele = (ArrayList) this.data.get(i);
+            String[] data = (String[]) ele.toArray(new String[ele.size()]);
+            for (int j = 0; j < data.length; j++) {
+                System.out.print(data[j]);
+                System.out.print(" ");
+            }
+            System.out.print("\n");
+        }
+    }
+
+    /**
+     * 向树中插入一个新节点
+     *
+     * @param num 节点值
+     * @return 结果
+     */
     public boolean insert(int num) {
         RBNode parent = this.searchLoc(this.root, num);
         if (parent.getValue() == num) {
@@ -198,6 +289,12 @@ class Tree {
         return this.repairInsert(newNode);
     }
 
+    /**
+     * 从子树中删除一个结点
+     *
+     * @param num 数字
+     * @return 结果
+     */
     public boolean delete(int num) {
         RBNode node = this.searchLoc(this.root, num);
         if (node.getValue() != num) {
@@ -242,11 +339,16 @@ class Tree {
         } else {
             replacement.getParent().setRight(null);
         }
-        replacement = null;
         return true;
     }
 
-    protected boolean repairDelete(RBNode node) {
+    /**
+     * 修复删除后的红黑树属性
+     *
+     * @param node 节点
+     * @return 结果
+     */
+    private boolean repairDelete(RBNode node) {
         // 结点是黑色，肯定有兄弟结点
         RBNode bro = node.getBro();
         RBNode parent = node.getParent();
@@ -291,7 +393,13 @@ class Tree {
         return true;
     }
 
-    protected boolean repairInsert(RBNode node) {
+    /**
+     * 修复添加一个结点后的红黑树平衡
+     *
+     * @param node 结点
+     * @return 结果
+     */
+    private boolean repairInsert(RBNode node) {
         // 如果父结点是黑色，直接返回成功
         RBNode parent = node.getParent();
         // 如果没有父结点说明是root结点
@@ -370,10 +478,10 @@ class Tree {
     /**
      * 旋转节点
      *
-     * @param node
-     * @param pos
+     * @param node 结点
+     * @param pos  位置
      */
-    protected void rotate(RBNode node, RBNode.Pos pos) {
+    private void rotate(RBNode node, RBNode.Pos pos) {
         // 留下父结点的指针
         RBNode oriParent = node.getParent();
         if (oriParent == null) {
@@ -408,11 +516,11 @@ class Tree {
     /**
      * 从结点内查找离某个值最近的位置
      *
-     * @param node
-     * @param num
-     * @return
+     * @param node 节点
+     * @param num  数字
+     * @return RBNode
      */
-    protected RBNode searchLoc(RBNode node, int num) {
+    private RBNode searchLoc(RBNode node, int num) {
         if (node.getValue() > num && node.getLeft() != null) {
             return this.searchLoc(node.getLeft(), num);
         } else if (node.getValue() < num && node.getRight() != null) {
@@ -422,16 +530,30 @@ class Tree {
         return node;
     }
 
-    protected void getChild(RBNode node, int depth){
+    /**
+     * 获取子树的结点属性
+     *
+     * @param node  结点
+     * @param depth 预定深度
+     */
+    private void getChild(RBNode node, int depth) {
+        String nodeInfo = node.getValue() + "|" + node.getColor() + "|" + node.getPos();
+
+        int treeDepth = this.data.size();
+        if (depth >= treeDepth || depth == 0) {
+            List levelData = new ArrayList();
+            this.data.add(levelData);
+        }
+        List list = (ArrayList) this.data.get(depth);
+        list.add(nodeInfo);
+
         depth++;
-        if (node.getLeft() !=null) {
+        if (node.getLeft() != null) {
             this.getChild(node.getLeft(), depth);
         }
 
-        if (node.getRight()!=null) {
+        if (node.getRight() != null) {
             this.getChild(node.getRight(), depth);
         }
-
-        // this.data[depth][] = node.getValue() + "|" + node.getColor() + "|" + node.getPos();
     }
 }
