@@ -312,9 +312,9 @@ class Tree {
         }
 
         // 交换值
-        int tmp_value = node.getValue();
+        int tmpValue = node.getValue();
         node.setValue(replacement.getValue());
-        replacement.setValue(tmp_value);
+        replacement.setValue(tmpValue);
         // 执行完交换，此时只需要把被替换对象的删除处理掉就好了
 
         // 如果结点颜色是黑色，相当于子树少了一层，需要递归向上处理平衡
