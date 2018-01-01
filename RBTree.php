@@ -360,8 +360,8 @@ class RBTree
         }
 
         // 以下父结点为红色
-        // 没有叔结点时，树旋转一下即可达到平衡
-        if (!$parent->getBro()) {
+        // 没有叔结点（叔结点为黑色Nil）或叔结点为黑色时，树旋转一下即可达到平衡
+        if (!$parent->getBro() || $parent->getBro()->getColor() == RBNode::COLOR_BLACK) {
             // 当新结点、父结点、祖父结点在同一条线上
             if ($node->getPos() == $parent->getPos()) {
                 if ($parent->getPos() == RBNode::POS_LEFT) {
@@ -398,25 +398,6 @@ class RBTree
             // 如果当前结点被修改为红色后父结点是黑色，则已达到平稳，不用再向上递归
             $adjust_node = $parent->getParent();
             return $this->repairInsert($adjust_node);
-        } else {
-            // 父结点红，叔结点是黑色时，处于中间模式，此时把加层的子树旋转到对边子树达到平衡
-            if ($node->getPos() == $parent->getPos()) {
-                $this->rotate($parent, $parent->getBro()->getPos());
-
-                // 此时调整结点是子树的父结点
-                $parent->setColor(RBNode::COLOR_BLACK);
-                $parent->getLeft()->setColor(RBNode::COLOR_RED);
-                $parent->getRight()->setColor(RBNode::COLOR_RED);
-            } else {
-                $ori_pos = $node->getPos();
-                $this->rotate($node, $parent->getPos());
-                $this->rotate($node, $ori_pos);
-
-                // 此时调整结点是子树的父结点
-                $node->setColor(RBNode::COLOR_BLACK);
-                $node->getLeft()->setColor(RBNode::COLOR_RED);
-                $node->getRight()->setColor(RBNode::COLOR_RED);
-            }
         }
 
         $this->root->setColor(RBNode::COLOR_BLACK);
