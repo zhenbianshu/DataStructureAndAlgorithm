@@ -301,7 +301,7 @@ class Tree {
             return false;
         }
 
-        // 找到比删除结点大的最小结点，用来替换，没有子结点时自身就是替代品
+        // 找到比删除结点大的最小结点，用来替换，没有子结点时自身就是替代结点
         RBNode replacement;
         if (node.getRight() != null) {
             replacement = node.getRight().getNext();
@@ -315,25 +315,10 @@ class Tree {
         int tmpValue = node.getValue();
         node.setValue(replacement.getValue());
         replacement.setValue(tmpValue);
-        // 执行完交换，此时只需要把被替换对象的删除处理掉就好了
 
-        // 如果结点颜色是黑色，相当于子树少了一层，需要递归向上处理平衡
-        if (replacement.getColor() == RBNode.Color.BLK) {
-            RBNode point = replacement;
-            while (point.getValue() != this.root.getValue() && !this.repairDelete(point)) {
-                // 如果当前层级处理失败，就必须要降层了，父黑兄弟红时，将兄弟结点置为红色即可（由于会首先处理父红或侄子有红的情况，所以处理失败时一定是全黑）
-                if (point.getParent().getColor() == RBNode.Color.BLK) {
-                    point.getBro().setColor(RBNode.Color.RED);
-                    point = point.getParent();
-                } else {
-                    // 父红，子两黑，将父变黑，另一子变红即可
-                    point.getParent().setColor(RBNode.Color.BLK);
-                    point.getBro().setColor(RBNode.Color.RED);
-                    break;
-                }
-            }
-        }
+        this.repairDelete(replacement);
 
+        // 修复后删除此替代结点
         if (replacement.getPos() == RBNode.Pos.LFT) {
             replacement.getParent().setLeft(null);
         } else {
@@ -346,9 +331,14 @@ class Tree {
      * 修复删除后的红黑树属性
      *
      * @param node 节点
-     * @return 结果
      */
-    private boolean repairDelete(RBNode node) {
+    private void repairDelete(RBNode node) {
+        // 是root结点或替代结点为红色时，直接返回成功
+        if (node.isEqual(this.root) || node.getColor() == RBNode.Color.RED) {
+            return;
+        }
+
+        // *以下替代结点为黑色
         // 结点是黑色，肯定有兄弟结点
         RBNode bro = node.getBro();
         RBNode parent = node.getParent();
@@ -361,9 +351,19 @@ class Tree {
             bro.setColor(RBNode.Color.BLK);
             parent.setColor(RBNode.Color.RED);
             // 继续处理删除情况
-            return this.repairDelete(node);
+            this.repairDelete(node);
+            return;
         }
 
+        // **以下替代结点为黑色，兄弟结点是黑色
+        // 父红，子两黑，将父变黑，另一子变红即可
+        if (parent.getColor() == RBNode.Color.RED) {
+            node.getParent().setColor(RBNode.Color.BLK);
+            node.getBro().setColor(RBNode.Color.RED);
+            return;
+        }
+
+        // ***以下替代结点为黑色，且父黑兄弟黑
         // 兄弟结点是黑色，如果有侄子结点一定是红色
         RBNode nephew;
         if (bro.getLeft() != null && bro.getLeft().getColor() == RBNode.Color.RED) {
@@ -372,9 +372,12 @@ class Tree {
             nephew = bro.getRight();
         } else {
             // 没有侄子结点，子树需要降层
-            return false;
+            node.getBro().setColor(RBNode.Color.RED);
+            this.repairDelete(parent);
+            return;
         }
 
+        // 父黑兄弟黑侄子红
         RBNode.Color oriParentColor = parent.getColor();
         RBNode.Color oriBroColor = bro.getColor();
         // 如添加一样，如果有侄子结点，先把侄子结点旋转到删除结点方向
@@ -390,7 +393,6 @@ class Tree {
         node.getParent().setColor(oriBroColor);
         node.getParent().getBro().setColor(oriBroColor);
         node.getParent().getParent().setColor(oriParentColor);
-        return true;
     }
 
     /**

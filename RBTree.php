@@ -311,25 +311,10 @@ class RBTree
         $tmp_value = $node->getValue();
         $node->setValue($replacement->getValue());
         $replacement->setValue($tmp_value);
-        // 执行完交换，此时只需要把被替换对象的删除处理掉就好了
 
-        // 如果结点颜色是黑色，相当于子树少了一层，需要递归向上处理平衡
-        if ($replacement->getColor() == RBNode::COLOR_BLACK) {
-            $point = $replacement;
-            while ($point->getValue() != $this->root->getValue() && !$this->repairDelete($point)) {
-                // 如果当前层级处理失败，就必须要降层了，父黑兄弟红时，将兄弟结点置为红色即可（由于会首先处理父红或侄子有红的情况，所以处理失败时一定是全黑）
-                if ($point->getParent()->getColor() == RBNode::COLOR_BLACK) {
-                    $point->getBro()->setColor(RBNode::COLOR_RED);
-                    $point = $point->getParent();
-                } else {
-                    // 父红，子两黑，将父变黑，另一子变红即可
-                    $point->getParent()->setColor(RBNode::COLOR_BLACK);
-                    $point->getBro()->setColor(RBNode::COLOR_RED);
-                    break;
-                }
-            }
-        }
+        $this->repairDelete($replacement);
 
+        // 修复后删除此替代结点
         if ($replacement->getPos() == RBNode::POS_LEFT) {
             $replacement->getParent()->setLeft(null);
         } else {
@@ -466,11 +451,15 @@ class RBTree
      * 修复层级降低的情况
      *
      * @param RBNode $node
-     *
-     * @return bool
      */
     private function repairDelete(RBNode $node)
     {
+        // 是root结点或替代结点为红色时，直接返回成功
+        if ($node->isEqual($this->root) || $node->getColor() == RBNode::COLOR_RED) {
+            return;
+        }
+
+        // *以下替代结点为黑色
         // 结点是黑色，肯定有兄弟结点
         $bro = $node->getBro();
         $parent = $node->getParent();
@@ -483,19 +472,32 @@ class RBTree
             $bro->setColor(RBNode::COLOR_BLACK);
             $parent->setColor(RBNode::COLOR_RED);
             // 继续处理删除情况
-            return $this->repairDelete($node);
+            $this->repairDelete($node);
+            return;
         }
 
+        // **以下替代结点为黑色，兄弟结点是黑色
+        // 父红，子两黑，将父变黑，另一子变红即可
+        if ($parent->getColor() == RBNode::COLOR_RED) {
+            $node->getParent()->setColor(RBNode::COLOR_BLACK);
+            $node->getBro()->setColor(RBNode::COLOR_RED);
+            return;
+        }
+
+        // ***以下替代结点为黑色，且父黑兄弟黑
         // 兄弟结点是黑色，如果有侄子结点一定是红色
-        if ($bro->getLeft() && $bro->getLeft()->getColor() == RBNode::COLOR_RED) {
+        if ($bro->getLeft() != null && $bro->getLeft()->getColor() == RBNode::COLOR_RED) {
             $nephew = $bro->getLeft();
-        } elseif ($bro->getRight() && $bro->getRight()->getColor() == RBNode::COLOR_RED) {
+        } else if ($bro->getRight() != null && $bro->getRight()->getColor() == RBNode::COLOR_RED) {
             $nephew = $bro->getRight();
         } else {
             // 没有侄子结点，子树需要降层
-            return false;
+            $node->getBro()->setColor(RBNode::COLOR_RED);
+            $this->repairDelete($parent);
+            return;
         }
 
+        // 父黑兄弟黑侄子红
         $ori_parent_color = $parent->getColor();
         $ori_bro_color = $bro->getColor();
         // 如添加一样，如果有侄子结点，先把侄子结点旋转到删除结点方向
@@ -511,7 +513,6 @@ class RBTree
         $node->getParent()->setColor($ori_bro_color);
         $node->getParent()->getBro()->setColor($ori_bro_color);
         $node->getParent()->getParent()->setColor($ori_parent_color);
-        return true;
     }
 
     /**
