@@ -304,9 +304,9 @@ class Tree {
         // 找到比删除结点大的最小结点，用来替换，没有子结点时自身就是替代结点
         RBNode replacement;
         if (node.getRight() != null) {
-            replacement = node.getRight().getNext();
+            replacement = node.getRight().getPre();
         } else if (node.getLeft() != null) {
-            replacement = node.getLeft().getPre();
+            replacement = node.getLeft().getNext();
         } else {
             replacement = node;
         }
