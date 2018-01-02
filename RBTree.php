@@ -95,8 +95,8 @@ class RBNode
      */
     public function getNext()
     {
-        if ($this->getLeft()) {
-            return $this->getLeft()->getNext();
+        if ($this->getRight()) {
+            return $this->getRight()->getNext();
         }
 
         return $this;
@@ -108,8 +108,8 @@ class RBNode
      */
     public function getPre()
     {
-        if ($this->getRight()) {
-            return $this->getRight()->getPre();
+        if ($this->getLeft()) {
+            return $this->getLeft()->getPre();
         }
 
         return $this;
@@ -281,7 +281,8 @@ class RBTree
         } else {
             $parent->append($new, RBNode::POS_RIGHT);
         }
-        return $this->repairInsert($new);
+        $this->repairInsert($new);
+        return true;
     }
 
     /**
@@ -300,9 +301,9 @@ class RBTree
 
         // 找到比删除结点大的最小结点，用来替换，没有子结点时自身就是替代品
         if ($node->getRight()) {
-            $replacement = $node->getRight()->getNext();
+            $replacement = $node->getRight()->getPre();
         } elseif ($node->getLeft()) {
-            $replacement = $node->getLeft()->getPre();
+            $replacement = $node->getLeft()->getNext();
         } else {
             $replacement = $node;
         }
@@ -328,20 +329,14 @@ class RBTree
      * 处理节点插入的情况
      *
      * @param RBNode $node
-     *
-     * @return bool
      */
     private function repairInsert(RBNode $node)
     {
-        // 如果父结点是黑色，直接返回成功
         $parent = $node->getParent();
-        // 如果没有父结点说明是root结点
-        if (!$parent) {
-            $node->setColor(RBNode::COLOR_BLACK);
-            return true;
-        }
-        if ($parent->getColor() == RBNode::COLOR_BLACK) {
-            return true;
+        // 如果是root结点或父结点是黑色，直接返回成功
+        if (!$parent || $parent->getColor() == RBNode::COLOR_BLACK) {
+            $this->root->setColor(RBNode::COLOR_BLACK);
+            return;
         }
 
         // 以下父结点为红色
@@ -371,7 +366,7 @@ class RBTree
                 $node->getLeft()->setColor(RBNode::COLOR_RED);
                 $node->getRight()->setColor(RBNode::COLOR_RED);
             }
-            return true;
+            return;
         }
 
         // 父结点和叔结点都是红色时，将父叔变黑，祖父变红，再递归处理祖父和其父亲的情况
@@ -382,11 +377,8 @@ class RBTree
 
             // 如果当前结点被修改为红色后父结点是黑色，则已达到平稳，不用再向上递归
             $adjust_node = $parent->getParent();
-            return $this->repairInsert($adjust_node);
+            $this->repairInsert($adjust_node);
         }
-
-        $this->root->setColor(RBNode::COLOR_BLACK);
-        return true;
     }
 
     /**
@@ -476,28 +468,27 @@ class RBTree
             return;
         }
 
-        // **以下替代结点为黑色，兄弟结点是黑色
-        // 父红，子两黑，将父变黑，另一子变红即可
-        if ($parent->getColor() == RBNode::COLOR_RED) {
-            $node->getParent()->setColor(RBNode::COLOR_BLACK);
-            $node->getBro()->setColor(RBNode::COLOR_RED);
-            return;
-        }
-
-        // ***以下替代结点为黑色，且父黑兄弟黑
-        // 兄弟结点是黑色，如果有侄子结点一定是红色
+        // **以下替代结点为黑色，兄弟结点为黑色
         if ($bro->getLeft() != null && $bro->getLeft()->getColor() == RBNode::COLOR_RED) {
             $nephew = $bro->getLeft();
         } else if ($bro->getRight() != null && $bro->getRight()->getColor() == RBNode::COLOR_RED) {
             $nephew = $bro->getRight();
         } else {
-            // 没有侄子结点，子树需要降层
+            // 没有侄子结点时，父红，子两黑，将父变黑，另一子变红即可
+            if ($parent->getColor() == RBNode::COLOR_RED) {
+                $node->getParent()->setColor(RBNode::COLOR_BLACK);
+                $node->getBro()->setColor(RBNode::COLOR_RED);
+                return;
+            }
+
+            // 没有侄子结点，父兄弟都为黑，子树需要降层
             $node->getBro()->setColor(RBNode::COLOR_RED);
             $this->repairDelete($parent);
             return;
         }
 
-        // 父黑兄弟黑侄子红
+        // 兄弟结点是黑色，如果有侄子结点一定是红色，父黑兄弟黑侄子红
+        // ***以下替代结点、兄弟、父亲结点都为黑色，有红色侄子结点
         $ori_parent_color = $parent->getColor();
         $ori_bro_color = $bro->getColor();
         // 如添加一样，如果有侄子结点，先把侄子结点旋转到删除结点方向
@@ -542,12 +533,19 @@ function test()
     $tree = new RBTree(50);
     for ($i = 0; $i < 20; $i++) {
         $value = rand(1, 100);
-        $tree->insert($value);
+        $res = $tree->insert($value);
+        if ($res) {
+            var_dump($value);
+        }
     }
 
+    $tree->printTree();
     for ($i = 0; $i < 20; $i++) {
         $value = rand(1, 100);
-        $tree->delete($value);
+        $res = $tree->delete($value);
+        if ($res) {
+            var_dump($value);
+        }
     }
 
     $tree->printTree();

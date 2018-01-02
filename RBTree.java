@@ -286,7 +286,8 @@ class Tree {
         } else {
             parent.append(newNode, RBNode.Pos.RGT);
         }
-        return this.repairInsert(newNode);
+        this.repairInsert(newNode);
+        return true;
     }
 
     /**
@@ -355,14 +356,6 @@ class Tree {
             return;
         }
 
-        // **以下替代结点为黑色，兄弟结点是黑色
-        // 父红，子两黑，将父变黑，另一子变红即可
-        if (parent.getColor() == RBNode.Color.RED) {
-            node.getParent().setColor(RBNode.Color.BLK);
-            node.getBro().setColor(RBNode.Color.RED);
-            return;
-        }
-
         // ***以下替代结点为黑色，且父黑兄弟黑
         // 兄弟结点是黑色，如果有侄子结点一定是红色
         RBNode nephew;
@@ -371,13 +364,20 @@ class Tree {
         } else if (bro.getRight() != null && bro.getRight().getColor() == RBNode.Color.RED) {
             nephew = bro.getRight();
         } else {
-            // 没有侄子结点，子树需要降层
+            // 没有侄子结点时，父红，子两黑，将父变黑，另一子变红即可
+            if (parent.getColor() == RBNode.Color.RED) {
+                node.getParent().setColor(RBNode.Color.BLK);
+                node.getBro().setColor(RBNode.Color.RED);
+                return;
+            }
+
+            // 没有侄子结点，父兄弟都为黑，子树需要降层
             node.getBro().setColor(RBNode.Color.RED);
             this.repairDelete(parent);
             return;
         }
 
-        // 父黑兄弟黑侄子红
+        // ***以下替代结点、兄弟、父亲结点都为黑色，有红色侄子结点
         RBNode.Color oriParentColor = parent.getColor();
         RBNode.Color oriBroColor = bro.getColor();
         // 如添加一样，如果有侄子结点，先把侄子结点旋转到删除结点方向
@@ -399,18 +399,13 @@ class Tree {
      * 修复添加一个结点后的红黑树平衡
      *
      * @param node 结点
-     * @return 结果
      */
-    private boolean repairInsert(RBNode node) {
-        // 如果父结点是黑色，直接返回成功
+    private void repairInsert(RBNode node) {
         RBNode parent = node.getParent();
-        // 如果没有父结点说明是root结点
-        if (parent == null) {
-            node.setColor(RBNode.Color.BLK);
-            return true;
-        }
-        if (parent.getColor() == RBNode.Color.BLK) {
-            return true;
+        // 如果是root结点或父结点是黑色，直接返回成功
+        if (parent == null || parent.getColor() == RBNode.Color.BLK) {
+            this.root.setColor(RBNode.Color.BLK);
+            return;
         }
 
         // 以下父结点为红色
@@ -440,7 +435,7 @@ class Tree {
                 node.getLeft().setColor(RBNode.Color.RED);
                 node.getRight().setColor(RBNode.Color.RED);
             }
-            return true;
+            return;
         }
 
         // 父结点和叔结点都是红色时，将父叔变黑，祖父变红，再递归处理祖父和其父亲的情况
@@ -451,11 +446,8 @@ class Tree {
 
             // 如果当前结点被修改为红色后父结点是黑色，则已达到平稳，不用再向上递归
             RBNode adjustNode = parent.getParent();
-            return this.repairInsert(adjustNode);
+            this.repairInsert(adjustNode);
         }
-
-        this.root.setColor(RBNode.Color.BLK);
-        return true;
     }
 
     /**
